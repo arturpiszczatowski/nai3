@@ -19,13 +19,11 @@ ostream& operator << (ostream& o, vector<double>v) {
 }
 
 
-vector<double> hill_climbing(function<double(vector<double>)> f, function<bool(vector<double>)> f_domain, ofstream &out, vector<double> p0, vector<double> distance, int iterations)
+vector<double> hill_climbing(function<double(vector<double>)> f, function<bool(vector<double>)> f_domain, ofstream &out, vector<double> p0, int iterations)
 {
     auto p = p0;
-    double a = distance.at(0);
-    double b = distance.at(1);
     uniform_int_distribution<> distrib(0, p.size() - 1);
-    uniform_real_distribution<> distrib_r(a, b);
+    uniform_real_distribution<> distrib_r(-0.1, 0.1);
     if (!f_domain(p)) throw std::invalid_argument("The p0 point must be in domain");
     for (int i = 0; i < iterations; i++) {
         auto p2 = p;
@@ -129,24 +127,23 @@ int main() {
 
 
     int iterations;
-    vector <double> distanceBetweenPoints{ -0.1,0.1 };
     cout << "Give number of iterations: " << endl;
     cin >> iterations;
-    uniform_real_distribution<> distrib_r(-10, 10);
-    vector<double> boothP0 = { distrib_r(gen),distrib_r(gen) };
+    uniform_real_distribution<> distrib_h(-10, 10);
+    vector<double> hp0 = {distrib_h(gen), distrib_h(gen) };
 
-    auto result1 = hill_climbing(holder_table_function, holder_table_domain,outfile, boothP0, distanceBetweenPoints, iterations);
-    auto result2 = simulated_annealing(holder_table_function, holder_table_domain, boothP0, iterations, outfile2,[](auto p) {
+    auto result1 = hill_climbing(holder_table_function, holder_table_domain, outfile, hp0, iterations);
+    auto result2 = simulated_annealing(holder_table_function, holder_table_domain, hp0, iterations, outfile2, [](auto p) {
                                            normal_distribution<double> n(0.0, 0.3);
                                            for (auto& e : p) {
                                                e = e + n(gen);
                                            }return p;},
                                        [](int k) { return 1000.0 / k; });
 
-    uniform_real_distribution<> distrib_r2(-2, 2);
-    vector<double> gp0 = { distrib_r2(gen),distrib_r2(gen) };
+    uniform_real_distribution<> distrib_g(-2, 2);
+    vector<double> gp0 = {distrib_g(gen), distrib_g(gen) };
 
-    auto result3 = hill_climbing(goldstein_function, goldstein_domain,outfile3,gp0, distanceBetweenPoints, iterations);
+    auto result3 = hill_climbing(goldstein_function, goldstein_domain,outfile3,gp0, iterations);
     auto result4 = simulated_annealing(goldstein_function, goldstein_domain, gp0, iterations, outfile4,[](auto p) {
                                            normal_distribution<double> n(0.0, 0.3);
                                            for (auto& e : p) {
